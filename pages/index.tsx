@@ -1,10 +1,30 @@
-import { Box, Button, Input } from "@chakra-ui/react";
+import { Box, Button, Input, List, ListItem } from "@chakra-ui/react";
 import { useState } from "react";
-
+import { API, graphqlOperation } from 'aws-amplify'
+import { createTodo } from '../src/graphql/mutations'
+import { listTodos } from '../src/graphql/queries'
 
 export default function Home() {
   const [value, setValue] = useState('')
-  const addTodo = () => console.log(value)
+  const addTodo = async () => {
+    try {
+      await API.graphql(graphqlOperation(createTodo, {
+        input: {
+          name: value
+        }
+      }))
+      setValue('')
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  (async () => {
+    const todos = await API.graphql(graphqlOperation(listTodos))
+    if ('data' in todos) {
+      console.log(todos.data.listTodos.items)
+    }
+  })()
 
   return (
     <>
@@ -21,6 +41,11 @@ export default function Home() {
           onChange={event => setValue(event.target.value)}
         />
         <Button colorScheme='blue' onClick={addTodo}>追加</Button>
+        <List>
+          <ListItem >
+
+          </ListItem>
+        </List>
       </Box>
     </>
   )
